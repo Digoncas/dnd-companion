@@ -1,7 +1,7 @@
 # Phase 1 todo
 
 - [x] Solution skeleton (Core, Web, Tests) builds
-- [ ] Core: initiative order + tests
+- [x] Core: initiative order + tests
 - [ ] Core: damage/healing + tests
 - [ ] SignalR hub: join session, broadcast state
 - [ ] Blazor combat page

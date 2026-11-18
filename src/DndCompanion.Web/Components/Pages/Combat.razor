@@ -1,0 +1,105 @@
+@* Co-Authored-By: Claude *@
+@page "/combat/{Code}"
+@rendermode InteractiveServer
+@implements IAsyncDisposable
+@inject NavigationManager Nav
+@using DndCompanion.Core
+@using DndCompanion.Web.Hubs
+@using Microsoft.AspNetCore.SignalR.Client
+
+<PageTitle>Combat @Code</PageTitle>
+
+<h1>Combat <small class="text-muted">@Code</small></h1>
+
+@if (_error is not null)
+{
+    <div class="alert alert-danger">@_error</div>
+}
+
+@if (_state is null)
+{
+    <p>Connecting...</p>
+}
+else
+{
+    <p>Round <strong>@_state.Round</strong> · Turn: <strong>@(_state.Current ?? "-")</strong>
+        <button class="btn btn-primary btn-sm ms-2" @onclick="NextTurn" disabled="@(_state.Creatures.Count == 0)">Next turn</button></p>
+
+    <table class="table table-sm">
+        <thead><tr><th>Name</th><th>HP</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var c in _state.Creatures)
+        {
+            <tr class="@(c.Name == _state.Current ? "table-warning" : null)">
+                <td>@c.Name @(c.IsDown ? "(down)" : "")</td>
+                <td>@c.CurrentHp / @c.MaxHp</td>
+                <td>
+                    <input type="number" min="0" style="width:5em" @bind="_amount" />
+                    <select @bind="_type">
+                        @foreach (var t in Enum.GetValues<DamageType>()) { <option value="@t">@t</option> }
+                    </select>
+                    <button class="btn btn-danger btn-sm" @onclick="() => Send(nameof(CombatHub.Damage), c.Name, _amount, _type)">Damage</button>
+                    <button class="btn btn-success btn-sm" @onclick="() => Send(nameof(CombatHub.Heal), c.Name, _amount)">Heal</button>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+
+    <h5>Add creature</h5>
+    <input placeholder="Name" @bind="_name" />
+    <input type="number" min="1" style="width:6em" placeholder="Max HP" @bind="_maxHp" />
+    <input type="number" style="width:6em" placeholder="Initiative" @bind="_initiative" />
+    <button class="btn btn-secondary btn-sm" @onclick="Add">Add</button>
+}
+
+@code {
+    [Parameter] public string Code { get; set; } = "";
+
+    private HubConnection? _hub;
+    private CombatSnapshot? _state;
+    private string? _error;
+    private int _amount = 1;
+    private DamageType _type = DamageType.Slashing;
+    private string _name = "";
+    private int _maxHp = 10;
+    private int _initiative;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hub = new HubConnectionBuilder()
+            .WithUrl(Nav.ToAbsoluteUri("/hubs/combat"))
+            .WithAutomaticReconnect()
+            .Build();
+        _hub.On<CombatSnapshot>("StateChanged", s => InvokeAsync(() => { _state = s; StateHasChanged(); }));
+        // after a reconnect the server forgot our group membership; join again and refresh
+        _hub.Reconnected += async _ => { _state = await _hub.InvokeAsync<CombatSnapshot>("Join", Code); await InvokeAsync(StateHasChanged); };
+        try
+        {
+            await _hub.StartAsync();
+            _state = await _hub.InvokeAsync<CombatSnapshot>("Join", Code);
+        }
+        catch (Exception e) { _error = e.Message; }
+    }
+
+    private Task NextTurn() => Send(nameof(CombatHub.NextTurn));
+
+    private Task Add()
+    {
+        var name = _name;
+        _name = "";
+        return Send(nameof(CombatHub.AddCreature), name, _maxHp, _initiative);
+    }
+
+    private async Task Send(string method, params object[] args)
+    {
+        _error = null;
+        try { await _hub!.SendCoreAsync(method, args); }
+        catch (Exception e) { _error = e.Message.Split(": ").Last(); } // HubException text arrives after the prefix
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hub is not null) await _hub.DisposeAsync();
+    }
+}

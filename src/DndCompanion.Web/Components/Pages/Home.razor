@@ -1,7 +1,19 @@
-﻿@page "/"
+@* Co-Authored-By: Claude *@
+@page "/"
+@rendermode InteractiveServer
+@inject NavigationManager Nav
 
-<PageTitle>Home</PageTitle>
+<PageTitle>DnD Companion</PageTitle>
 
-<h1>Hello, world!</h1>
+<h1>DnD Companion</h1>
 
-Welcome to your new app.
+<p>Enter a session code. Everyone who uses the same code sees the same live combat.</p>
+<input placeholder="Session code" @bind="_code" @bind:event="oninput" @onkeydown="OnKey" />
+<button class="btn btn-primary btn-sm" @onclick="Go" disabled="@string.IsNullOrWhiteSpace(_code)">Join</button>
+
+@code {
+    private string _code = "";
+
+    private void Go() => Nav.NavigateTo($"/combat/{Uri.EscapeDataString(_code.Trim())}");
+    private void OnKey(KeyboardEventArgs e) { if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(_code)) Go(); }
+}

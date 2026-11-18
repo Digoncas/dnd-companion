@@ -2,7 +2,8 @@
 
 - [x] Solution skeleton (Core, Web, Tests) builds
 - [x] Core: initiative order + tests
-- [ ] Core: damage/healing + tests
+- [x] Core: damage/healing (Strategy rules) + tests
+- [ ] Core: `Combat` composing tracker + creatures
 - [ ] SignalR hub: join session, broadcast state
 - [ ] Blazor combat page
 - [ ] GitHub Actions: build + test

@@ -4,7 +4,7 @@
 - [x] Core: initiative order + tests
 - [x] Core: damage/healing (Strategy rules) + tests
 - [x] Core: `Combat` composing tracker + creatures
-- [ ] SignalR hub: join session, broadcast state
+- [x] SignalR hub: join session, broadcast state
 - [ ] Blazor combat page
 - [ ] GitHub Actions: build + test
 - [ ] README demo GIF, mark phase 1 done

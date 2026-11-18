@@ -1,10 +1,13 @@
 using DndCompanion.Web.Components;
+using DndCompanion.Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+builder.Services.AddSignalR();
+builder.Services.AddSingleton<CombatSessions>(); // Co-Authored-By: Claude
 
 var app = builder.Build();
 
@@ -23,5 +26,7 @@ app.UseAntiforgery();
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+app.MapHub<CombatHub>("/hubs/combat"); // Co-Authored-By: Claude
 
 app.Run();

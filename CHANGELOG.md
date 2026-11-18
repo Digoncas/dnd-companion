@@ -3,6 +3,7 @@
 Newest first. One entry per meaningful change; keep in sync with commits.
 
 ## 2026-11-17
+- Web: `CombatHub` (`/hubs/combat`: Join, AddCreature, Damage, Heal, NextTurn) and in-memory `CombatSessions` that broadcast `StateChanged` snapshots to the session group. Not yet runtime-tested end to end; Blazor page planned. Phase 1.
 - Core: `Combat` composes tracker and creatures, skips downed creatures on `NextTurn`, raises `Changed` after each mutation; 5 more tests (20 total). Phase 1.
 - Core: `Creature` (HP, heal capped at max) with Strategy-based `IDamageRule` (`Resistance`, `Vulnerability`, `Immunity`); 8 more xUnit tests (15 total). Phase 1.
 - Docs: `docs/design.md` (SOLID/patterns map), ADR 0003, design rule in CLAUDE.md.
